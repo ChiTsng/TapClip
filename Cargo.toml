@@ -3,6 +3,8 @@ name = "tapclip"
 version = "0.1.0"
 edition = "2024"
 description = "Tap an NFC tag with your iPhone to share one clipboard item with your Windows PC"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ChiTsng/TapClip"
 publish = false
 
 [dependencies]

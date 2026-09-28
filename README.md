@@ -86,3 +86,14 @@ pwsh scripts/install.ps1 -Autostart
 - **防暴力猜测：** 同一 IP 连续输错 10 次，会被锁定 10 分钟。
 - **限制请求大小：** 请求头最多 16 KB，文字最多 1 MB，读写都有超时。
 - **不传敏感内容：** 密码管理器等程序标记为不要记录或同步的内容，不会发给手机。
+
+## 许可证
+
+以下两种许可证任选其一：
+
+- [Apache License 2.0](LICENSE-APACHE)
+- [MIT License](LICENSE-MIT)
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.
