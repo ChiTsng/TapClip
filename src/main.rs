@@ -20,6 +20,10 @@ use bridge::Bridge;
 use win::ui::message_box;
 
 fn main() {
+    if std::env::args_os().any(|arg| arg == "--quit") {
+        win::app::quit_running();
+        return;
+    }
     let custom_config = config_arg();
     let Some(_instance) = win::instance::acquire() else {
         message_box("TapClip 已经在运行了，图标在任务栏右下角。", MB_OK | MB_ICONINFORMATION);
@@ -61,7 +65,7 @@ fn main() {
     log!("TapClip exited");
 }
 
-/// `--config <path>` selects a non-default config file (used for testing).
+/// `--config <path>` selects a non-default config file (used by the tests).
 fn config_arg() -> Option<PathBuf> {
     let mut args = std::env::args_os().skip(1);
     while let Some(arg) = args.next() {

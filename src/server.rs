@@ -79,7 +79,7 @@ impl<T: Tapper> Server<T> {
             if let Some(ip) = peer {
                 self.lockout.fail(ip, now);
             }
-            log!("rejected request from {peer:?}: bad token");
+            log!("rejected request from {}: bad token", peer.map_or_else(|| "unknown".into(), |ip| ip.to_string()));
             return Response::message(401, "密钥不对，请检查快捷指令里的密钥");
         }
         if let Some(ip) = peer {

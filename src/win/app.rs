@@ -16,10 +16,10 @@ use windows_sys::Win32::System::DataExchange::{AddClipboardFormatListener, Remov
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     AppendMenuW, CW_USEDEFAULT, CreatePopupMenu, CreateWindowExW, DefWindowProcW, DestroyMenu, DestroyWindow,
-    DispatchMessageW, GetCursorPos, GetMessageW, KillTimer, MB_ICONERROR, MB_ICONINFORMATION, MB_OK, MF_CHECKED,
-    MF_SEPARATOR, MF_STRING, MSG, PostMessageW, PostQuitMessage, RegisterClassExW, RegisterWindowMessageW,
+    DispatchMessageW, FindWindowW, GetCursorPos, GetMessageW, KillTimer, MB_ICONERROR, MB_ICONINFORMATION, MB_OK,
+    MF_CHECKED, MF_SEPARATOR, MF_STRING, MSG, PostMessageW, PostQuitMessage, RegisterClassExW, RegisterWindowMessageW,
     SetForegroundWindow, SetTimer, TPM_NONOTIFY, TPM_RETURNCMD, TPM_RIGHTBUTTON, TrackPopupMenu, TranslateMessage,
-    WM_APP, WM_CLIPBOARDUPDATE, WM_DESTROY, WM_DESTROYCLIPBOARD, WM_LBUTTONUP, WM_NULL, WM_RBUTTONUP,
+    WM_APP, WM_CLIPBOARDUPDATE, WM_CLOSE, WM_DESTROY, WM_DESTROYCLIPBOARD, WM_LBUTTONUP, WM_NULL, WM_RBUTTONUP,
     WM_RENDERALLFORMATS, WM_RENDERFORMAT, WM_TIMER, WNDCLASSEXW, WS_OVERLAPPED,
 };
 
@@ -41,6 +41,8 @@ const TIMER_EXPIRE: usize = 1;
 const TIMER_PROMOTE: usize = 2;
 const PROMOTE_RETRY_MS: u32 = 50;
 const PROMOTE_ATTEMPTS: u32 = 40;
+
+const WINDOW_CLASS: &str = "TapClip.Window";
 
 const MENU_PAIRING: usize = 1;
 const MENU_AUTOSTART: usize = 2;
@@ -75,7 +77,7 @@ pub fn create(
     custom_config: bool,
     jobs: mpsc::Receiver<Job>,
 ) -> Result<HWND, String> {
-    let class = wide("TapClip.Window");
+    let class = wide(WINDOW_CLASS);
     let title = wide("TapClip");
     let hwnd = unsafe {
         let instance = GetModuleHandleW(ptr::null());
@@ -145,6 +147,25 @@ pub fn run_loop() {
 
 pub fn destroy(hwnd: HWND) {
     unsafe { DestroyWindow(hwnd) };
+}
+
+/// Asks a running instance to exit cleanly (restoring a pending offer) and
+/// waits up to three seconds for its window to go. False if none was running.
+pub fn quit_running() -> bool {
+    let class = wide(WINDOW_CLASS);
+    let find = || unsafe { FindWindowW(class.as_ptr(), ptr::null()) };
+    let hwnd = find();
+    if hwnd.is_null() {
+        return false;
+    }
+    unsafe { PostMessageW(hwnd, WM_CLOSE, 0, 0) };
+    for _ in 0..60 {
+        if find().is_null() {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(50));
+    }
+    true
 }
 
 /// Shows the pairing details once the message loop runs.
